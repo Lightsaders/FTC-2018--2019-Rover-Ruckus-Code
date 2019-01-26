@@ -49,8 +49,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@TeleOp(name = "Concept: TensorFlow Object Detection", group = "Concept")
-@Disabled
+@TeleOp(name = "Concept: TensorFlow Object Detection")
 public class ConceptTensorFlowObjectDetection extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -68,7 +67,7 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
      * Once you've obtained a license key, copy the string from the Vuforia web site
      * and paste it in to your code on the next line, between the double quotes.
      */
-    private static final String VUFORIA_KEY = " -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
+    private static final String VUFORIA_KEY = "ARCIeAv/////AAABmc7rRZU9AUZJjXc1QoY3z+94AeSN1dBKD0EWtrasT+QqXPat3vIFa09vi3b9xjMmmOi65gII0IG3WDmxFxffEg8sU8ZIihGqQnYoDRN1ho6p5pKIYEDfWGURt4ykZ5US5w5cCEBcssxAI5zWpVvpYBm9uDGO0EiC4rr0jeEJ9jZzCS7oYLSe1kbF5J8UT89edXK1YfLS6tPF59LgBOWgJSHSDmHJcGdIGXY2oejpN+vKNI19bdtSFJ+tyKCS8EZdGomuClneCQRLCn3rOthemk53T4gGErz/Ro/3zLmzbAZ2PCMMXTMW8RoTVIDYx05mnfpzNyf7Ve8GyuY8YTCqWeANJPh7oIyzuXrraup7MSWy";
 
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
@@ -127,11 +126,11 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
                         }
                         if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
                           if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                            telemetry.addData("Gold Mineral Position", "Left");
+                            telemetry.addData("Gold Mineral Position", "Left" + goldMineralX);
                           } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                            telemetry.addData("Gold Mineral Position", "Right");
+                            telemetry.addData("Gold Mineral Position", "Right"+ goldMineralX);
                           } else {
-                            telemetry.addData("Gold Mineral Position", "Center");
+                            telemetry.addData("Gold Mineral Position", "Center"+ goldMineralX);
                           }
                         }
                       }
