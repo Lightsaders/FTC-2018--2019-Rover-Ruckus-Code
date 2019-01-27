@@ -65,6 +65,7 @@ public class Dual_Player_1 extends LinearOpMode {
             telemetry.addData("FrontRightMotorPower", driveFrontRight.getPower());
             telemetry.addData("BackRightMotorPower", driveBackLeft.getPower());
             telemetry.addData("BackLeftMotorPower", driveBackRight.getPower());
+            telemetry.addData("INTAKE SLIDE ENCODER", intakeSlide.getCurrentPosition());
             telemetry.update();
 
             // GAMEPAD 1 BASE

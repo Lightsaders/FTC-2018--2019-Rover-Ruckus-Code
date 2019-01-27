@@ -9,6 +9,16 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+
+import java.util.List;
+
 @Autonomous(name = "Depot_1")
 public class Depot_1 extends LinearOpMode {
 
@@ -30,11 +40,16 @@ public class Depot_1 extends LinearOpMode {
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
     double DRIVE_GEAR_REDUCTION = 0.75;    // 20 tooth to 15 tooth
     double WHEEL_DIAMETER_CM = 10.16;     // mecanum wheels
-    double COUNTS_PER_CM_REV = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_CM * Math.PI)) / 2;
+    double TUNING_DRIVE = 1.1;
+    double COUNTS_PER_CM_REV = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION * TUNING_DRIVE) / (WHEEL_DIAMETER_CM * Math.PI)) / 2;
 
     // Lift Motor Specs
     double COUNTS_PER_MOTOR_LIFT = 388;
-    double CM_PPR_LIFT = COUNTS_PER_MOTOR_LIFT/0.8;
+    double CM_PPR_LIFT = COUNTS_PER_MOTOR_LIFT / 0.8;
+
+    // Intake Motor Specs
+    double TUNING_INTAKE = 5;
+    double COUNTS_PER_CM_INTAKE = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION*TUNING_INTAKE));
 
     //Runtime
     ElapsedTime runtime = new ElapsedTime();
@@ -42,6 +57,16 @@ public class Depot_1 extends LinearOpMode {
     // The IMU sensor object
     BNO055IMU imu;
     public double heading;
+
+    // Tensorflow
+    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
+    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
+    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
+    private static final String VUFORIA_KEY = "ARCIeAv/////AAABmc7rRZU9AUZJjXc1QoY3z+94AeSN1dBKD0EWtrasT+QqXPat3vIFa09vi3b9xjMmmOi65gII0IG3WDmxFxffEg8sU8ZIihGqQnYoDRN1ho6p5pKIYEDfWGURt4ykZ5US5w5cCEBcssxAI5zWpVvpYBm9uDGO0EiC4rr0jeEJ9jZzCS7oYLSe1kbF5J8UT89edXK1YfLS6tPF59LgBOWgJSHSDmHJcGdIGXY2oejpN+vKNI19bdtSFJ+tyKCS8EZdGomuClneCQRLCn3rOthemk53T4gGErz/Ro/3zLmzbAZ2PCMMXTMW8RoTVIDYx05mnfpzNyf7Ve8GyuY8YTCqWeANJPh7oIyzuXrraup7MSWy";
+    private VuforiaLocalizer vuforia;
+    private TFObjectDetector tfod;
+    private String position;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -71,25 +96,29 @@ public class Depot_1 extends LinearOpMode {
 
         // Reverse motors which were mounted upside down
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize servos
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
 
-        while(!opModeIsActive() && !isStopRequested()){
-            telemetry.addData("Status: ", "waiting for start command" );
+        initVuforia();
+
+        while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("Status: ", "waiting for start command");
             telemetry.update();
         }
 
-        if(opModeIsActive()){
-            landing(-10,1);
-            landing(10,1);
-            telemetry.addData("Lift Motor Encoder Counts: ", ""+ liftMotor.getCurrentPosition());
-            telemetry.update();
+        while (opModeIsActive()) {
+
+            // AUTO CODE GOES HERE
+            intakeSlideEncoder(0.75,-10);
+
         }
 
     }
+
     public void landing(double distanceCM, double speed) {
         int target;
 
@@ -120,6 +149,313 @@ public class Depot_1 extends LinearOpMode {
 
             //Turn off run to position
             liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
+    // NOT PERFECT BUT SHOULD WORK, MAY NEED TO REVISIT
+    public void IMUturn(double degree, String direction, double speed, double tolerance) {
+
+        double initialHeading;
+        double finalHeading;
+
+        switch (direction) {
+            case "C":// clockwise
+
+                initialHeading = getCurrentHeading();
+                finalHeading = initialHeading + degree;
+                if (finalHeading > 360) {
+                    finalHeading = finalHeading - 360;
+                }
+
+                while (opModeIsActive() && (int) (getCurrentHeading()) < (int) (finalHeading + tolerance)) {
+                    driveFrontLeft.setPower(speed);
+                    driveFrontRight.setPower(speed * -1);
+                    driveBackLeft.setPower(speed);
+                    driveBackRight.setPower(speed * -1);
+                    telemetry.addData("1CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
+                    telemetry.update();
+                }
+
+                driveFrontLeft.setPower(0);
+                driveFrontRight.setPower(0);
+                driveBackLeft.setPower(0);
+                driveBackRight.setPower(0);
+
+                break;
+            case "CC":// counterclockwise
+
+                initialHeading = getCurrentHeading();
+                finalHeading = initialHeading - degree;
+                if (finalHeading < 0) {
+                    finalHeading = finalHeading + 360;
+                }
+
+                while (opModeIsActive() && (int) (getCurrentHeading()) > (int) (finalHeading - tolerance)) {
+                    driveFrontLeft.setPower(speed * -1);
+                    driveFrontRight.setPower(speed);
+                    driveBackLeft.setPower(speed * -1);
+                    driveBackRight.setPower(speed);
+                    telemetry.addData("2CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
+                    telemetry.update();
+                }
+
+                driveFrontLeft.setPower(0);
+                driveFrontRight.setPower(0);
+                driveBackLeft.setPower(0);
+                driveBackRight.setPower(0);
+
+                break;
+        }
+    }
+
+    public double getCurrentHeading() {
+        heading = 0.0;
+        heading = (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle * -1);
+        if (heading < 0) {
+            heading = heading + 360;
+        }
+        return heading;
+    }
+
+    private void initVuforia() {
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         */
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
+    }
+
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
+    }
+
+    public String getMineralPosition() {
+        if (tfod != null) {
+            tfod.activate();
+        }
+        while (opModeIsActive()) {
+            if (tfod != null) {
+                // getUpdatedRecognitions() will return null if no new information is available since
+                // the last time that call was made.
+                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                if (updatedRecognitions != null) {
+                    telemetry.addData("# Object Detected", updatedRecognitions.size());
+                    if (updatedRecognitions.size() == 3) {
+                        int goldMineralX = -1;
+                        int silverMineral1X = -1;
+                        int silverMineral2X = -1;
+                        for (Recognition recognition : updatedRecognitions) {
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                goldMineralX = (int) recognition.getLeft();
+                            } else if (silverMineral1X == -1) {
+                                silverMineral1X = (int) recognition.getLeft();
+                            } else {
+                                silverMineral2X = (int) recognition.getLeft();
+                            }
+                        }
+                        if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                            if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+                                telemetry.addData("Gold Mineral Position", "Left" + goldMineralX);
+                                position = "L";
+                            } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+                                telemetry.addData("Gold Mineral Position", "Right" + goldMineralX);
+                                position = "R";
+                            } else {
+                                telemetry.addData("Gold Mineral Position", "Center" + goldMineralX);
+                                position = "C";
+                            }
+                        }
+                    }
+                    telemetry.update();
+                }
+            }
+        }
+
+        if (tfod != null) {
+            tfod.shutdown();
+        }
+        return position;
+    }
+
+    public void straightDriveEncoder(double speed, double distanceCM) {
+        int frontLeftTarget;
+        int backLeftTarget;
+        int frontRightTarget;
+        int backRightTarget;
+
+        if (opModeIsActive()) {
+
+            driveFrontLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveFrontRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveBackLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveBackRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+            // Determine new target position, and pass to motor controller
+            frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            backRightTarget = driveBackRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+
+            // set target position to each motor
+            driveFrontLeft.setTargetPosition(frontLeftTarget);
+            driveFrontRight.setTargetPosition(frontRightTarget);
+            driveBackLeft.setTargetPosition(backLeftTarget);
+            driveBackRight.setTargetPosition(backRightTarget);
+
+            // Turn on run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            driveFrontLeft.setPower(Math.abs(speed));
+            driveFrontRight.setPower(Math.abs(speed));
+            driveBackLeft.setPower(Math.abs(speed));
+            driveBackRight.setPower(Math.abs(speed));
+
+            while (opModeIsActive() &&
+                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
+            }
+
+            // Stop all motion;
+            driveFrontLeft.setPower(0);
+            driveFrontRight.setPower(0);
+            driveBackLeft.setPower(0);
+            driveBackRight.setPower(0);
+
+            //Turn off run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+    }
+
+    public void strafeDriveEncoder(double speed, double distance,  String direction) {
+        int frontLeftTarget = 0;
+        int backLeftTarget = 0;
+        int frontRightTarget = 0;
+        int backRightTarget = 0;
+
+        switch (direction) {
+            case "LEFT":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV  * -1.45);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
+                break;
+            case "RIGHT":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV*1.45) ;
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *  -1.45);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
+                break;
+        }
+        if (opModeIsActive()) {
+
+            // set target position to each motor
+            driveFrontLeft.setTargetPosition(frontLeftTarget);
+            driveFrontRight.setTargetPosition(frontRightTarget);
+            driveBackLeft.setTargetPosition(backLeftTarget);
+            driveBackRight.setTargetPosition(backRightTarget);
+
+            // Turn on run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            driveFrontLeft.setPower(Math.abs(speed));
+            driveFrontRight.setPower(Math.abs(speed));
+            driveBackLeft.setPower(Math.abs(speed));
+            driveBackRight.setPower(Math.abs(speed));
+
+            while (opModeIsActive() &&
+                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
+            }
+
+            // Stop all motion;
+            driveFrontLeft.setPower(0);
+            driveFrontRight.setPower(0);
+            driveBackLeft.setPower(0);
+            driveBackRight.setPower(0);
+
+            //Turn off run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+
+    }
+
+    // NOT GETTING ANY ENCODER READINGS
+    public void intakeSlideEncoder(double speed, double distanceCM) {
+        int target;
+
+        if (opModeIsActive()) {
+            
+            intakeSlide.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+            // Determine new target position, and pass to motor controller
+            target = intakeSlide.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_INTAKE);
+
+            // set target position to each motor
+            intakeSlide.setTargetPosition(target);
+
+            // Turn on run to position
+            intakeSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            
+            intakeSlide.setPower(Math.abs(speed));
+
+            // Display it for the driver.
+            telemetry.addData("INTAKE SLIDE MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", target, intakeSlide.getCurrentPosition());
+            telemetry.update();
+            sleep(2000);
+
+            while (opModeIsActive() &&
+                    (intakeMotor.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("INTAKE SLIDE MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", target, intakeSlide.getCurrentPosition());
+                telemetry.update();
+            }
+
+            // Stop all motion;
+            intakeSlide.setPower(0);
+
+            //Turn off run to position
+            intakeSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         }
     }
 }
