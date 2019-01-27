@@ -18,9 +18,6 @@ import com.sun.tools.javac.tree.DCTree;
  * Created by robotics on 10/30/2017.
  */
 @TeleOp(name = "RYLAN-BASE_GRANT-EXTREMA", group = "TeleOp")
-
-// TODO need to fix this again because I forgot to back this up get it from the computer at SMCA
-
 public class Dual_Player_1 extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
@@ -36,6 +33,7 @@ public class Dual_Player_1 extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -57,15 +55,16 @@ public class Dual_Player_1 extends LinearOpMode {
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("status", "waiting for start command...");
+            telemetry.update();
+        }
+        outtake.setPosition(0.41);
 
         while (opModeIsActive()) {
 
-            telemetry.addData("FrontLeftMotorPower", driveFrontLeft.getPower());
-            telemetry.addData("FrontRightMotorPower", driveFrontRight.getPower());
-            telemetry.addData("BackRightMotorPower", driveBackLeft.getPower());
-            telemetry.addData("BackLeftMotorPower", driveBackRight.getPower());
-            telemetry.addData("INTAKE SLIDE ENCODER", intakeSlide.getCurrentPosition());
+            telemetry.addData("Current Time: ", getRuntime());
             telemetry.update();
 
             // GAMEPAD 1 BASE
@@ -88,42 +87,53 @@ public class Dual_Player_1 extends LinearOpMode {
             driveFrontRight.setPower(gamepad1.right_stick_x);
             driveBackRight.setPower(gamepad1.right_stick_x);
 
-            outtakeSlide.setPower(gamepad1.left_trigger);
-            outtakeSlide.setPower(gamepad1.right_trigger*-2);
-
-            if(gamepad1.a){// dump
-                outtake.setPosition(0.9);// this
-            }
-            if(gamepad1.b){// standard position
-                outtake.setPosition(0.41);// this
-            }
-            if(gamepad1.x){
-                outtake.setPosition(0.5);// this
-            }
-            if(gamepad1.y){
-                outtake.setPosition(0.75);// this
+            if(gamepad1.left_bumper){
+                outtakeSlide.setPower(-1.0);
+            } else if(gamepad1.right_bumper){
+                outtakeSlide.setPower(1.0);
+            }else{
+                outtakeSlide.setPower(0);
             }
 
-            // Grant Controls
-          
-            intakeSlide.setPower(gamepad2.left_stick_y);
-            crunchLeft.setPower(gamepad2.right_stick_y);
-            crunchRight.setPower(gamepad2.right_stick_y*-1);
-            if(gamepad2.a){
-                intake.setPower(1.0);
+            if(gamepad1.a){// outtake receive
+                outtake.setPosition(0.9);
             }
-            if(gamepad2.b){
-                intake.setPower(-1.0);
+            if(gamepad1.b){// outtake dump
+                outtake.setPosition(0.43);
             }
-            if(gamepad2.x){
+            if(gamepad1.x){// outtake intermediary 1
+                outtake.setPosition(0.5);
+            }
+            if(gamepad1.y){// outtake intermediary 2
+                outtake.setPosition(0.75);
+            }
+
+
+            // GAMEPAD 2 EXTREMITIES
+
+            liftMotor.setPower(gamepad2.right_stick_y*-1);
+            intakeSlide.setPower(gamepad2.left_stick_x);
+
+            if(gamepad2.a){// stop
                 intake.setPower(0.0);
             }
-            liftMotor.setPower(gamepad2.left_trigger);
-            liftMotor.setPower(gamepad2.right_trigger*-2);
+            if(gamepad2.x){// reverse
+                intake.setPower(-1.0);
+            }
+            if(gamepad2.b){// forward
+                intake.setPower(1.0);
+            }
 
-            
-            
-
+            if(gamepad2.left_bumper){// crunch UP
+                crunchLeft.setPower(1);
+                crunchRight.setPower(-1);
+            } else if(gamepad2.right_bumper){// crunch DOWN
+                crunchLeft.setPower(-1);
+                crunchRight.setPower(1);
+            } else{
+                crunchLeft.setPower(0);
+                crunchRight.setPower(0);
+            }
         }
         idle();
     }
