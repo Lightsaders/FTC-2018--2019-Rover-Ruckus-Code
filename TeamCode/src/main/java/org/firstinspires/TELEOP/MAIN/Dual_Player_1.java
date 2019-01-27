@@ -18,6 +18,9 @@ import com.sun.tools.javac.tree.DCTree;
  * Created by robotics on 10/30/2017.
  */
 @TeleOp(name = "RYLAN-BASE_GRANT-EXTREMA", group = "TeleOp")
+
+// TODO need to fix this again because I forgot to back this up get it from the computer at SMCA
+
 public class Dual_Player_1 extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
