@@ -104,6 +104,11 @@ public class Depot_1 extends LinearOpMode {
         outtake = hardwareMap.servo.get("outtake");
 
         initVuforia();
+        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
+            initTfod();
+        } else {
+            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+        }
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
@@ -112,51 +117,96 @@ public class Depot_1 extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            String mineral = getMineralPosition(); // Get mineral position
+            String mineral = "";
 
-            landing(10, 1.0); // TODO need to get the right distanceCM
-
-            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
-            straightDriveEncoder(0.5,10);// TODO need to get the right speed and distance
-            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
-            straightDriveEncoder(0.5,-10);// TODO need to get the right speed and distance
-
-            IMUturn(90,"C",0.5,1);
-            if(mineral == "L"){
-                IMUturn(45,"CC",0.5,1); // TODO need to make sure this is the correct degree
+            if (tfod != null) {
+                tfod.activate();
             }
-            if(mineral == "R"){
-                IMUturn(45,"C",0.5,1);// TODO need to make sure this is the correct degree
+            while (opModeIsActive()) {
+                if (tfod != null) {
+                    // getUpdatedRecognitions() will return null if no new information is available since
+                    // the last time that call was made.
+                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                    if (updatedRecognitions != null) {
+                        telemetry.addData("# Object Detected", updatedRecognitions.size());
+                        if (updatedRecognitions.size() == 3) {
+                            int goldMineralX = -1;
+                            int silverMineral1X = -1;
+                            int silverMineral2X = -1;
+                            for (Recognition recognition : updatedRecognitions) {
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                    goldMineralX = (int) recognition.getLeft();
+                                } else if (silverMineral1X == -1) {
+                                    silverMineral1X = (int) recognition.getLeft();
+                                } else {
+                                    silverMineral2X = (int) recognition.getLeft();
+                                }
+                            }
+                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+                                    telemetry.addData("Gold Mineral Position", "Left" + goldMineralX);
+                                    position = "L";
+                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+                                    telemetry.addData("Gold Mineral Position", "Right" + goldMineralX);
+                                    position = "R";
+                                } else {
+                                    telemetry.addData("Gold Mineral Position", "Center" + goldMineralX);
+                                    position = "C";
+                                }
+                            }
+                        }
+                        telemetry.update();
+                    }
+                }
             }
 
-            double run1 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that it is correct
-            while(run1 > getRuntime()){// crunch DOWN
-                crunchLeft.setPower(-1);
-                crunchRight.setPower(1);
+            if (tfod != null) {
+                tfod.shutdown();
             }
-            intakeMotor.setPower(1.0);
-            crunchLeft.setPower(0);
-            crunchRight.setPower(0);
 
-            straightDriveEncoder(0.5,25);// TODO need to make sure this is the correct distance
-
-            double run2 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that there is enough time for the mineral to flow into the outtake
-            while(run2 > getRuntime()){// crunch DOWN
-                crunchLeft.setPower(1);
-                crunchRight.setPower(-1);
-            }
-            intakeMotor.setPower(0.0);
-            crunchLeft.setPower(0);
-            crunchRight.setPower(0);
-
-            straightDriveEncoder(0.5,-25);// TODO need to make sure this is the correct distance
-
-            if(mineral == "L"){
-                IMUturn(45,"C",0.5,1); // TODO need to make sure this is the correct degree
-            }
-            if(mineral == "R"){
-                IMUturn(45,"CC",0.5,1);// TODO need to make sure this is the correct degree
-            }
+//            landing(10, 1.0); // TODO need to get the right distanceCM
+//
+//            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
+//            straightDriveEncoder(0.5,10);// TODO need to get the right speed and distance
+//            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
+//            straightDriveEncoder(0.5,-10);// TODO need to get the right speed and distance
+//
+//            IMUturn(90,"C",0.5,1);
+//            if(mineral == "L"){
+//                IMUturn(45,"CC",0.5,1); // TODO need to make sure this is the correct degree
+//            }
+//            if(mineral == "R"){
+//                IMUturn(45,"C",0.5,1);// TODO need to make sure this is the correct degree
+//            }
+//
+//            double run1 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that it is correct
+//            while(run1 > getRuntime()){// crunch DOWN
+//                crunchLeft.setPower(-1);
+//                crunchRight.setPower(1);
+//            }
+//            intakeMotor.setPower(1.0);
+//            crunchLeft.setPower(0);
+//            crunchRight.setPower(0);
+//
+//            straightDriveEncoder(0.5,25);// TODO need to make sure this is the correct distance
+//
+//            double run2 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that there is enough time for the mineral to flow into the outtake
+//            while(run2 > getRuntime()){// crunch DOWN
+//                crunchLeft.setPower(1);
+//                crunchRight.setPower(-1);
+//            }
+//            intakeMotor.setPower(0.0);
+//            crunchLeft.setPower(0);
+//            crunchRight.setPower(0);
+//
+//            straightDriveEncoder(0.5,-25);// TODO need to make sure this is the correct distance
+//
+//            if(mineral == "L"){
+//                IMUturn(45,"C",0.5,1); // TODO need to make sure this is the correct degree
+//            }
+//            if(mineral == "R"){
+//                IMUturn(45,"CC",0.5,1);// TODO need to make sure this is the correct degree
+//            }
 
             // FROM HERE ON IS SPECIFIC TO THE PATH
 
@@ -283,54 +333,6 @@ public class Depot_1 extends LinearOpMode {
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
-    }
-
-    public String getMineralPosition() {
-        if (tfod != null) {
-            tfod.activate();
-        }
-        while (opModeIsActive()) {
-            if (tfod != null) {
-                // getUpdatedRecognitions() will return null if no new information is available since
-                // the last time that call was made.
-                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                if (updatedRecognitions != null) {
-                    telemetry.addData("# Object Detected", updatedRecognitions.size());
-                    if (updatedRecognitions.size() == 3) {
-                        int goldMineralX = -1;
-                        int silverMineral1X = -1;
-                        int silverMineral2X = -1;
-                        for (Recognition recognition : updatedRecognitions) {
-                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                goldMineralX = (int) recognition.getLeft();
-                            } else if (silverMineral1X == -1) {
-                                silverMineral1X = (int) recognition.getLeft();
-                            } else {
-                                silverMineral2X = (int) recognition.getLeft();
-                            }
-                        }
-                        if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                            if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                                telemetry.addData("Gold Mineral Position", "Left" + goldMineralX);
-                                position = "L";
-                            } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                                telemetry.addData("Gold Mineral Position", "Right" + goldMineralX);
-                                position = "R";
-                            } else {
-                                telemetry.addData("Gold Mineral Position", "Center" + goldMineralX);
-                                position = "C";
-                            }
-                        }
-                    }
-                    telemetry.update();
-                }
-            }
-        }
-
-        if (tfod != null) {
-            tfod.shutdown();
-        }
-        return position;
     }
 
     public void straightDriveEncoder(double speed, double distanceCM) {

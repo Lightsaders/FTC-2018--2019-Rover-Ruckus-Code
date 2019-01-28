@@ -87,9 +87,9 @@ public class Dual_Player_1 extends LinearOpMode {
             driveFrontRight.setPower(gamepad1.right_stick_x);
             driveBackRight.setPower(gamepad1.right_stick_x);
 
-            if(gamepad1.left_bumper){
+            if(gamepad1.right_bumper){
                 outtakeSlide.setPower(-1.0);
-            } else if(gamepad1.right_bumper){
+            } else if(gamepad1.left_bumper){
                 outtakeSlide.setPower(1.0);
             }else{
                 outtakeSlide.setPower(0);
