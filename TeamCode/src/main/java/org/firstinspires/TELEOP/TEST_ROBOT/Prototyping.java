@@ -20,13 +20,15 @@ import java.util.Locale;
 
 @TeleOp(name = "Prototyping", group = "Teleop")
 @Disabled
+
+
 public class Prototyping extends LinearOpMode{
     private DcMotor motor;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        motor =  hardwareMap.dcMotor.get("driveFrontLeft");
+        motor =  hardwareMap.dcMotor.get("motor");
 
         waitForStart();
 

@@ -49,7 +49,7 @@ public class Depot_1 extends LinearOpMode {
 
     // Intake Motor Specs
     double TUNING_INTAKE = 5;
-    double COUNTS_PER_CM_INTAKE = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION*TUNING_INTAKE));
+    double COUNTS_PER_CM_INTAKE = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION * TUNING_INTAKE));
 
     //Runtime
     ElapsedTime runtime = new ElapsedTime();
@@ -112,8 +112,53 @@ public class Depot_1 extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // AUTO CODE GOES HERE
-            intakeSlideEncoder(0.75,-10);
+            String mineral = getMineralPosition(); // Get mineral position
+
+            landing(10, 1.0); // TODO need to get the right distanceCM
+
+            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
+            straightDriveEncoder(0.5,10);// TODO need to get the right speed and distance
+            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
+            straightDriveEncoder(0.5,-10);// TODO need to get the right speed and distance
+
+            IMUturn(90,"C",0.5,1);
+            if(mineral == "L"){
+                IMUturn(45,"CC",0.5,1); // TODO need to make sure this is the correct degree
+            }
+            if(mineral == "R"){
+                IMUturn(45,"C",0.5,1);// TODO need to make sure this is the correct degree
+            }
+
+            double run1 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that it is correct
+            while(run1 > getRuntime()){// crunch DOWN
+                crunchLeft.setPower(-1);
+                crunchRight.setPower(1);
+            }
+            intakeMotor.setPower(1.0);
+            crunchLeft.setPower(0);
+            crunchRight.setPower(0);
+
+            straightDriveEncoder(0.5,25);// TODO need to make sure this is the correct distance
+
+            double run2 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that there is enough time for the mineral to flow into the outtake
+            while(run2 > getRuntime()){// crunch DOWN
+                crunchLeft.setPower(1);
+                crunchRight.setPower(-1);
+            }
+            intakeMotor.setPower(0.0);
+            crunchLeft.setPower(0);
+            crunchRight.setPower(0);
+
+            straightDriveEncoder(0.5,-25);// TODO need to make sure this is the correct distance
+
+            if(mineral == "L"){
+                IMUturn(45,"C",0.5,1); // TODO need to make sure this is the correct degree
+            }
+            if(mineral == "R"){
+                IMUturn(45,"CC",0.5,1);// TODO need to make sure this is the correct degree
+            }
+
+            // FROM HERE ON IS SPECIFIC TO THE PATH
 
         }
 
@@ -350,7 +395,7 @@ public class Depot_1 extends LinearOpMode {
         }
     }
 
-    public void strafeDriveEncoder(double speed, double distance,  String direction) {
+    public void strafeDriveEncoder(double speed, double distance, String direction) {
         int frontLeftTarget = 0;
         int backLeftTarget = 0;
         int frontRightTarget = 0;
@@ -359,17 +404,17 @@ public class Depot_1 extends LinearOpMode {
         switch (direction) {
             case "LEFT":
                 // Determine new target position, and pass to motor controller
-                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV  * -1.45);
-                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
-                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
                 backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
                 break;
             case "RIGHT":
                 // Determine new target position, and pass to motor controller
-                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV*1.45) ;
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
                 frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
-                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *  -1.45);
-                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV *1.45);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
                 break;
         }
         if (opModeIsActive()) {
@@ -423,7 +468,7 @@ public class Depot_1 extends LinearOpMode {
         int target;
 
         if (opModeIsActive()) {
-            
+
             intakeSlide.setMode(DcMotor.RunMode.RESET_ENCODERS);
 
             // Determine new target position, and pass to motor controller
@@ -434,7 +479,7 @@ public class Depot_1 extends LinearOpMode {
 
             // Turn on run to position
             intakeSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            
+
             intakeSlide.setPower(Math.abs(speed));
 
             // Display it for the driver.
@@ -458,4 +503,5 @@ public class Depot_1 extends LinearOpMode {
 
         }
     }
+
 }
