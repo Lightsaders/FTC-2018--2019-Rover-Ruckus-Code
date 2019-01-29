@@ -60,26 +60,19 @@ public class Dual_Player_1 extends LinearOpMode {
             telemetry.addData("status", "waiting for start command...");
             telemetry.update();
         }
-        outtake.setPosition(0.41);
+        outtake.setPosition(0.45);
 
         while (opModeIsActive()) {
 
-            telemetry.addData("Current Time: ", getRuntime());
+            telemetry.addData("JUST REMEMBER BE CALM","");
             telemetry.update();
 
             // GAMEPAD 1 BASE
 
-            // LEFT STICK Y - FORWARDS AND BACKWARDS
-            driveFrontLeft.setPower(gamepad1.left_stick_y);
-            driveBackLeft.setPower(gamepad1.left_stick_y);
-            driveFrontRight.setPower(gamepad1.left_stick_y);
-            driveBackRight.setPower(gamepad1.left_stick_y);
-
-            // LEFT STICK X - STRAFE LEFT AND RIGHT
-            driveFrontLeft.setPower(gamepad1.left_stick_x*-1);
-            driveBackLeft.setPower(gamepad1.left_stick_x);
-            driveFrontRight.setPower(gamepad1.left_stick_x);
-            driveBackRight.setPower(gamepad1.left_stick_x*-1);
+            driveBackLeft.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x);
+            driveFrontLeft.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x*-1);
+            driveFrontRight.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x);
+            driveBackRight.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x*-1);
 
             // RIGHT STICK X - TURN CLOCKWISE AND COUNTERCLOCKWISE
             driveFrontLeft.setPower(gamepad1.right_stick_x * -1);
@@ -99,7 +92,7 @@ public class Dual_Player_1 extends LinearOpMode {
                 outtake.setPosition(0.9);
             }
             if(gamepad1.b){// outtake dump
-                outtake.setPosition(0.43);
+                outtake.setPosition(0.45);
             }
             if(gamepad1.x){// outtake intermediary 1
                 outtake.setPosition(0.5);
