@@ -35,6 +35,7 @@ public class CRATER_NO_MARKER extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+    private Servo marker;
 
     // REV HD 40:1 Motor Specs
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
@@ -103,6 +104,7 @@ public class CRATER_NO_MARKER extends LinearOpMode {
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
+        marker = hardwareMap.servo.get("marker");
 
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -113,7 +115,8 @@ public class CRATER_NO_MARKER extends LinearOpMode {
         if (tfod != null) {
             tfod.activate();
         }
-
+        outtake.setPosition(0.45);
+        marker.setPosition(0.62);
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
@@ -193,27 +196,34 @@ public class CRATER_NO_MARKER extends LinearOpMode {
                     straightDriveEncoder(0.5,35);
                     strafeDriveEncoder(0.5,20,"RIGHT");
                     strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(0.5,-100);
                     break;
                 case"R":
                     strafeDriveEncoder(0.5,30,"RIGHT");
                     straightDriveEncoder(0.5,-35);
                     strafeDriveEncoder(0.5,20,"RIGHT");
                     strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(0.5,-30);
                     break;
                 case"C":
-                    strafeDriveEncoder(0.5,55,"RIGHT");
+                    strafeDriveEncoder(0.5,45,"RIGHT");
                     strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(0.5,-70);
                     break;
             }
+            turnEncoder(0.3,45,"C");
+            strafeDriveEncoder(0.5,35,"RIGHT");
+            strafeDriveEncoder(0.5,5,"LEFT");
+            straightDriveEncoder(0.5,30);
 
-//        double run1 = getRuntime() + 0.75;
-//        while (run1 > getRuntime()) {// crunch DOWN
-//            crunchLeft.setPower(-1);
-//            crunchRight.setPower(1);
-//        }
-//        crunchLeft.setPower(0);
-//        crunchRight.setPower(0);
-//
+        double run1 = getRuntime() + 0.75;
+        while (run1 > getRuntime()) {// crunch DOWN
+            crunchLeft.setPower(-1);
+            crunchRight.setPower(1);
+        }
+        crunchLeft.setPower(0);
+        crunchRight.setPower(0);
+
         }
 
     }

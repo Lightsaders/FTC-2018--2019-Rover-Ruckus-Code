@@ -35,6 +35,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+    private Servo marker;
 
     // REV HD 40:1 Motor Specs
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
@@ -103,6 +104,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
+        marker = hardwareMap.servo.get("marker");
 
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -113,7 +115,8 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
         if (tfod != null) {
             tfod.activate();
         }
-
+        outtake.setPosition(0.45);
+        marker.setPosition(0.62);
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
@@ -194,10 +197,10 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
                     straightDriveEncoder(0.5,68);
                     turnEncoder(0.3,  75, "C");
                     straightDriveEncoder(0.5,68);
-                    // DROP MINERAL
                     turnEncoder(0.5,105,"C");
                     straightDriveEncoder(0.5,10);
-                    strafeDriveEncoder(0.5,30,"LEFT");
+                    strafeDriveEncoder(0.5,35,"LEFT");
+                    marker.setPosition(0.1);
                     strafeDriveEncoder(0.5,5,"RIGHT");
                     straightDriveEncoder(0.5,165);
                     break;
@@ -206,8 +209,8 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
                     straightDriveEncoder(0.5,72);
                     turnEncoder(0.3,  75, "CC");
                     straightDriveEncoder(0.5,68);
-                    //Drop Mineral
                     turnEncoder(0.3,165,"C");
+                    marker.setPosition(0.1);
                     strafeDriveEncoder(0.5,10,"LEFT");
                     strafeDriveEncoder(0.5,5,"RIGHT");
                     straightDriveEncoder(0.5,145);
@@ -217,8 +220,8 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
                     straightDriveEncoder(0.5,105);
                     straightDriveEncoder(0.5,-15);
                     turnEncoder(0.5,135,"C");
-                    // DROP MINERAL
                     strafeDriveEncoder(0.5,33,"LEFT");
+                    marker.setPosition(0.1);
                     strafeDriveEncoder(0.5,5,"RIGHT");
                     straightDriveEncoder(0.5,140);
                     break;

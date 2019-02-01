@@ -35,6 +35,7 @@ public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+    private Servo marker;
 
     // REV HD 40:1 Motor Specs
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
@@ -103,6 +104,7 @@ public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
+        marker = hardwareMap.servo.get("marker");
 
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -113,7 +115,8 @@ public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
         if (tfod != null) {
             tfod.activate();
         }
-
+        outtake.setPosition(0.45);
+        marker.setPosition(0.62);
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
@@ -203,14 +206,14 @@ public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
                     straightDriveEncoder(1,150);
                     break;
                 case"C":
-                    strafeDriveEncoder(0.5,55,"RIGHT");
+                    strafeDriveEncoder(0.5,47,"RIGHT");
                     strafeDriveEncoder(0.5,20,"LEFT");
                     straightDriveEncoder(1,125);
                     break;
             }
             turnEncoder(0.3,135,"C");
             straightDriveEncoder(1,-100);
-            // DROP MARKER
+            marker.setPosition(0.1);
             straightDriveEncoder(1,150);
 
         double run1 = getRuntime() + 0.75;

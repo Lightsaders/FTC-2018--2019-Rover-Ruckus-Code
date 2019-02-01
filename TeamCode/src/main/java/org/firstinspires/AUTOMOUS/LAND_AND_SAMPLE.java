@@ -35,6 +35,7 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+    private Servo marker;
 
     // REV HD 40:1 Motor Specs
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
@@ -103,6 +104,7 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
+        marker = hardwareMap.servo.get("marker");
 
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -113,7 +115,8 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
         if (tfod != null) {
             tfod.activate();
         }
-
+        outtake.setPosition(0.45);
+        marker.setPosition(0.62);
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
@@ -191,26 +194,17 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
             switch(mineral){
                 case"L":
                     turnEncoder(0.3,  45, "C");
-                    straightDriveEncoder(0.5,68);
+                    straightDriveEncoder(0.5,80);
                     break;
                 case"R":
                     turnEncoder(0.3,  135, "C");
-                    straightDriveEncoder(0.5,72);;
+                    straightDriveEncoder(0.5,80);
                     break;
                 case"C":
-                    turnEncoder(0.3,  90, "C");//
-                    straightDriveEncoder(0.5,68);
+                    turnEncoder(0.3,  90, "C");
+                    straightDriveEncoder(0.5,80);
                     break;
             }
-
-            double run1 = getRuntime() + 0.75;
-            while (run1 > getRuntime()) {// crunch DOWN
-                crunchLeft.setPower(-1);
-                crunchRight.setPower(1);
-            }
-            crunchLeft.setPower(0);
-            crunchRight.setPower(0);
-
         }
 
     }

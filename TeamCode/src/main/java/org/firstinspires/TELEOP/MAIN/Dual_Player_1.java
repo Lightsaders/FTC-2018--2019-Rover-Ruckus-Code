@@ -33,6 +33,7 @@ public class Dual_Player_1 extends LinearOpMode {
     private CRServo crunchLeft;
     private CRServo crunchRight;
     private Servo outtake;
+    private Servo marker;
 
 
     @Override
@@ -54,6 +55,7 @@ public class Dual_Player_1 extends LinearOpMode {
         crunchLeft = hardwareMap.crservo.get("crunchLeft");
         crunchRight = hardwareMap.crservo.get("crunchRight");
         outtake = hardwareMap.servo.get("outtake");
+        marker = hardwareMap.servo.get("marker");
 
         //waitForStart();
         while (!opModeIsActive() && !isStopRequested()) {
@@ -61,10 +63,13 @@ public class Dual_Player_1 extends LinearOpMode {
             telemetry.update();
         }
         outtake.setPosition(0.45);
+        marker.setPosition(0.62);
 
         while (opModeIsActive()) {
 
             telemetry.addData("JUST REMEMBER BE CALM","");
+            telemetry.addData("RYLAN: DRIVE WHILE LIFTING OUTTAKE & TELL GRANT WHEN HE IS CLEAR TO DUMP","");
+            telemetry.addData("GRANT: COMMUNICATE WITH RYLAN & DON'T GET FRANTIC", "");
             telemetry.update();
 
             // GAMEPAD 1 BASE
