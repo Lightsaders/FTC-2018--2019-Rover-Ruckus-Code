@@ -181,6 +181,10 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
                 tfod.shutdown();
             }
 
+            if(mineral == " "){
+                    mineral = "C";
+            }
+
             // LAND
             landing(17, 1.0);
 

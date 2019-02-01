@@ -180,7 +180,9 @@ public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
             if (tfod != null) {
                 tfod.shutdown();
             }
-
+            if(mineral == " "){
+                mineral = "C";
+            }
             // LAND
             landing(17, 1.0);
 

@@ -180,7 +180,9 @@ public class CRATER_NO_MARKER extends LinearOpMode {
             if (tfod != null) {
                 tfod.shutdown();
             }
-
+            if(mineral == " "){
+                mineral = "C";
+            }
             // LAND
             landing(17, 1.0);
 

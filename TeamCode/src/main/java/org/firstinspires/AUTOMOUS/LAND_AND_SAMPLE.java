@@ -180,7 +180,9 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
             if (tfod != null) {
                 tfod.shutdown();
             }
-
+            if(mineral == " "){
+                mineral = "C";
+            }
             // LAND
             landing(17, 1.0);
 
