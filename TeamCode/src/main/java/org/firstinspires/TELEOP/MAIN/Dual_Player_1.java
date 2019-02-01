@@ -101,7 +101,6 @@ public class Dual_Player_1 extends LinearOpMode {
                 outtake.setPosition(0.75);
             }
 
-
             // GAMEPAD 2 EXTREMITIES
 
             liftMotor.setPower(gamepad2.right_stick_y*-1);

@@ -19,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-@Autonomous(name = "CRATER_OUR_CRATER")
-public class Crater_1 extends LinearOpMode {
+@Autonomous(name = "DEPOT_OUR_CRATER")
+public class Depot_2 extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
     private DcMotor driveFrontRight;
@@ -187,80 +187,44 @@ public class Crater_1 extends LinearOpMode {
             strafeDriveEncoder(0.5, 4, "RIGHT");
             straightDriveEncoder(0.5, -5);
 
-//            // TURN TO MINERAL
-//            switch(mineral){
-//                case"L":
-//                    turnEncoder(0.3,  50, "C");
-//                    straightDriveEncoder(0.75,62);
-//                    strafeDriveEncoder(0.75,7,"LEFT");
-//                    straightDriveEncoder(0.75,50);
-//                    straightDriveEncoder(0.75,-5);
-//                    turnEncoder(0.3,  90, "C");
-//                    straightDriveEncoder(1,-135);
-//                    // DROP MARKER
-//                    strafeDriveEncoder(0.75,5,"LEFT");
-//                    strafeDriveEncoder(0.75,5,"RIGHT");
-//                    straightDriveEncoder(1,142);
-//                    break;
-//                case"R":
-//                    turnEncoder(0.3,  135, "C");
-//                    straightDriveEncoder(0.75,62);
-//                    straightDriveEncoder(0.75,-20);
-//                    turnEncoder(0.3,  135, "CC");
-//                    straightDriveEncoder(0.75,200);
-//                    turnEncoder(0.3,  45, "CC");
-//                    straightDriveEncoder(0.75,50);
-//                    turnEncoder(0.3,  180, "CC");
-//                    // DROP MARKER
-//                    strafeDriveEncoder(0.75,5,"LEFT");
-//                    strafeDriveEncoder(0.75,5,"RIGHT");
-//                    straightDriveEncoder(1,142);
-//                    break;
-//                case"C":
-//                    turnEncoder(0.3,  92, "C");
-//                    straightDriveEncoder(0.75,62);
-//                    straightDriveEncoder(0.75,-60);
-//                    turnEncoder(0.3,  45, "CC");
-//                    straightDriveEncoder(0.75,20);
-//                    strafeDriveEncoder(0.75,7,"LEFT");
-//                    straightDriveEncoder(0.75,90);
-//                    straightDriveEncoder(0.75,-5);
-//                    turnEncoder(0.3,  90, "C");
-//                    straightDriveEncoder(1,-135);
-//                    // DROP MARKER
-//                    strafeDriveEncoder(0.75,5,"LEFT");
-//                    strafeDriveEncoder(0.75,5,"RIGHT");
-//                    straightDriveEncoder(1,142);
-//                    break;
-//            }
-
+            // TURN TO MINERAL
             switch(mineral){
                 case"L":
-                    strafeDriveEncoder(0.5,30,"RIGHT");
-                    straightDriveEncoder(0.5,35);
-                    strafeDriveEncoder(0.5,20,"RIGHT");
-                    strafeDriveEncoder(0.5,20,"LEFT");
-                    straightDriveEncoder(1,70);
+                    turnEncoder(0.3,  45, "C");
+                    straightDriveEncoder(0.5,68);
+                    turnEncoder(0.3,  75, "C");
+                    straightDriveEncoder(0.5,68);
+                    // DROP MINERAL
+                    turnEncoder(0.5,105,"C");
+                    straightDriveEncoder(0.5,10);
+                    strafeDriveEncoder(0.5,30,"LEFT");
+                    strafeDriveEncoder(0.5,5,"RIGHT");
+                    straightDriveEncoder(0.5,165);
                     break;
                 case"R":
-                    strafeDriveEncoder(0.5,30,"RIGHT");
-                    straightDriveEncoder(0.5,-35);
-                    strafeDriveEncoder(0.5,20,"RIGHT");
-                    strafeDriveEncoder(0.5,20,"LEFT");
-                    straightDriveEncoder(1,150);
+                    turnEncoder(0.3,  135, "C");
+                    straightDriveEncoder(0.5,72);
+                    turnEncoder(0.3,  75, "CC");
+                    straightDriveEncoder(0.5,68);
+                    //Drop Mineral
+                    turnEncoder(0.3,165,"C");
+                    strafeDriveEncoder(0.5,10,"LEFT");
+                    strafeDriveEncoder(0.5,5,"RIGHT");
+                    straightDriveEncoder(0.5,145);
                     break;
                 case"C":
-                    strafeDriveEncoder(0.5,55,"RIGHT");
-                    strafeDriveEncoder(0.5,20,"LEFT");
-                    straightDriveEncoder(1,125);
+                    turnEncoder(0.3,  90, "C");//
+                    straightDriveEncoder(0.5,105);
+                    straightDriveEncoder(0.5,-15);
+                    turnEncoder(0.5,135,"C");
+                    // DROP MINERAL
+                    strafeDriveEncoder(0.5,33,"RIGHT");
+                    strafeDriveEncoder(0.5,5,"LEFT");
+                    straightDriveEncoder(0.5,140);
                     break;
             }
-            turnEncoder(0.3,135,"C");
-            straightDriveEncoder(1,-100);
-            // DROP MARKER
-            straightDriveEncoder(1,150);
 
-        double run1 = getRuntime() + 0.75;
+        double run1 = getRuntime() + 0.75; // TODO need to change the time (0.5) so that it is correct
         while (run1 > getRuntime()) {// crunch DOWN
             crunchLeft.setPower(-1);
             crunchRight.setPower(1);

@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.ConceptTensorFlowObjectDetection;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -19,7 +20,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-@Autonomous(name = "Depot_1")
+@Autonomous(name = "DEPOT_OPPOSITE_CRATER")
 public class Depot_1 extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
@@ -41,6 +42,7 @@ public class Depot_1 extends LinearOpMode {
     double DRIVE_GEAR_REDUCTION = 0.75;    // 20 tooth to 15 tooth
     double WHEEL_DIAMETER_CM = 10.16;     // mecanum wheels
     double TUNING_DRIVE = 1.1;
+    double ROBOT_RADIUS_CM = 29;
     double COUNTS_PER_CM_REV = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION * TUNING_DRIVE) / (WHEEL_DIAMETER_CM * Math.PI)) / 2;
 
     // Lift Motor Specs
@@ -109,106 +111,126 @@ public class Depot_1 extends LinearOpMode {
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
+        if (tfod != null) { // TODO maybe move this into intialization
+            tfod.activate();
+        }
+
 
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("Status: ", "waiting for start command");
             telemetry.update();
         }
 
-        while (opModeIsActive()) {
+        if (opModeIsActive()) {
 
-            String mineral = "";
+            String mineral = " ";
 
-            if (tfod != null) {
-                tfod.activate();
-            }
-            while (opModeIsActive()) {
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
                     // the last time that call was made.
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
                         telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        if (updatedRecognitions.size() == 3) {
-                            int goldMineralX = -1;
-                            int silverMineral1X = -1;
-                            int silverMineral2X = -1;
+                        int goldMineralX = -1;
+                        int silverMineral1X = -1;
+                        int silverMineral2X = -1;
+                        double goldMineralConfidence = 0.0;
+                        double silverMineralConfidence = 0.0;
+                        double start = getRuntime();
+                        while (opModeIsActive() && getRuntime()-start < 5 && mineral == " ") {
                             for (Recognition recognition : updatedRecognitions) {
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                    goldMineralX = (int) recognition.getLeft();
+
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                    goldMineralConfidence = recognition.getConfidence();
+                                }
+                                if (recognition.getLabel().equals(LABEL_SILVER_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                    silverMineralConfidence = recognition.getConfidence();
+                                }
+
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                    goldMineralX = (int) recognition.getBottom();
                                 } else if (silverMineral1X == -1) {
-                                    silverMineral1X = (int) recognition.getLeft();
+                                    silverMineral1X = (int) recognition.getBottom();
                                 } else {
-                                    silverMineral2X = (int) recognition.getLeft();
+                                    silverMineral2X = (int) recognition.getBottom();
                                 }
                             }
-                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                                    telemetry.addData("Gold Mineral Position", "Left" + goldMineralX);
-                                    position = "L";
-                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                                    telemetry.addData("Gold Mineral Position", "Right" + goldMineralX);
-                                    position = "R";
-                                } else {
-                                    telemetry.addData("Gold Mineral Position", "Center" + goldMineralX);
-                                    position = "C";
-                                }
+
+                            if (goldMineralX > 700 && silverMineral1X < 700 && goldMineralConfidence > silverMineralConfidence) {
+                                mineral = "C";
+                                telemetry.addData("Mineral POSITION: ", mineral);
+                                telemetry.update();
+                            } else if (goldMineralX < 700 && silverMineral1X > 700 && goldMineralConfidence > silverMineralConfidence) {
+                                mineral = "L";
+                                telemetry.addData("Mineral POSITION: ", mineral);
+                                telemetry.update();
+                            } else if (silverMineral1X != -1 && silverMineral2X != -1) {
+                                mineral = "R";
+                                telemetry.addData("Mineral POSITION: ", mineral);
+                                telemetry.update();
                             }
+
                         }
                         telemetry.update();
                     }
                 }
-            }
 
             if (tfod != null) {
                 tfod.shutdown();
             }
 
-//            landing(10, 1.0); // TODO need to get the right distanceCM
-//
-//            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
-//            straightDriveEncoder(0.5,10);// TODO need to get the right speed and distance
-//            strafeDriveEncoder(0.5,10,"RIGHT");// TODO need to get the right speed and distance
-//            straightDriveEncoder(0.5,-10);// TODO need to get the right speed and distance
-//
-//            IMUturn(90,"C",0.5,1);
-//            if(mineral == "L"){
-//                IMUturn(45,"CC",0.5,1); // TODO need to make sure this is the correct degree
-//            }
-//            if(mineral == "R"){
-//                IMUturn(45,"C",0.5,1);// TODO need to make sure this is the correct degree
-//            }
-//
-//            double run1 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that it is correct
-//            while(run1 > getRuntime()){// crunch DOWN
-//                crunchLeft.setPower(-1);
-//                crunchRight.setPower(1);
-//            }
-//            intakeMotor.setPower(1.0);
-//            crunchLeft.setPower(0);
-//            crunchRight.setPower(0);
-//
-//            straightDriveEncoder(0.5,25);// TODO need to make sure this is the correct distance
-//
-//            double run2 = getRuntime() + 0.5; // TODO need to change the time (0.5) so that there is enough time for the mineral to flow into the outtake
-//            while(run2 > getRuntime()){// crunch DOWN
-//                crunchLeft.setPower(1);
-//                crunchRight.setPower(-1);
-//            }
-//            intakeMotor.setPower(0.0);
-//            crunchLeft.setPower(0);
-//            crunchRight.setPower(0);
-//
-//            straightDriveEncoder(0.5,-25);// TODO need to make sure this is the correct distance
-//
-//            if(mineral == "L"){
-//                IMUturn(45,"C",0.5,1); // TODO need to make sure this is the correct degree
-//            }
-//            if(mineral == "R"){
-//                IMUturn(45,"CC",0.5,1);// TODO need to make sure this is the correct degree
-//            }
+            // LAND
+            landing(17, 1.0);
 
-            // FROM HERE ON IS SPECIFIC TO THE PATH
+            //DELATCH
+            strafeDriveEncoder(0.5, 4, "RIGHT");
+            straightDriveEncoder(0.5, 5);
+            strafeDriveEncoder(0.5, 4, "RIGHT");
+            straightDriveEncoder(0.5, -5);
+
+            // TURN TO MINERAL
+            switch(mineral){
+                case"L":
+                    turnEncoder(0.3,  45, "C");
+                    straightDriveEncoder(0.5,68);
+                    turnEncoder(0.3,  75, "C");
+                    straightDriveEncoder(0.5,68);
+                    // DROP MINERAL
+                    turnEncoder(0.5,165,"CC");
+                    strafeDriveEncoder(0.5,10,"RIGHT");
+                    strafeDriveEncoder(0.5,5,"LEFT");
+                    straightDriveEncoder(0.5,134);
+                    break;
+                case"R":
+                    turnEncoder(0.3,  135, "C");
+                    straightDriveEncoder(0.5,72);
+                    turnEncoder(0.3,  75, "CC");
+                    straightDriveEncoder(0.5,65);
+                    //DROP MINERAL
+                    turnEncoder(0.3,105,"CC");
+                    strafeDriveEncoder(0.5,30,"RIGHT");
+                    strafeDriveEncoder(0.5,5,"LEFT");
+                    straightDriveEncoder(0.5,154);
+                    break;
+                case"C":
+                    turnEncoder(0.3,  90, "C");//
+                    straightDriveEncoder(0.5,105);
+                    straightDriveEncoder(0.5,-15);
+                    turnEncoder(0.5,135,"CC");
+                    // DROP MINERAL
+                    strafeDriveEncoder(0.5,33,"RIGHT");
+                    strafeDriveEncoder(0.5,5,"LEFT");
+                    straightDriveEncoder(0.5,140);
+                    break;
+            }
+
+            double run1 = getRuntime() + 0.75; // TODO need to change the time (0.5) so that it is correct
+            while (run1 > getRuntime()) {// crunch DOWN
+                crunchLeft.setPower(-1);
+                crunchRight.setPower(1);
+            }
+            crunchLeft.setPower(0);
+            crunchRight.setPower(0);
 
         }
 
@@ -248,61 +270,143 @@ public class Depot_1 extends LinearOpMode {
     }
 
     // NOT PERFECT BUT SHOULD WORK, MAY NEED TO REVISIT
-    public void IMUturn(double degree, String direction, double speed, double tolerance) {
+//    public void IMUturn(double degree, String direction, double speed, double tolerance) {
+//
+//        double initialHeading;
+//        double finalHeading;
+//
+//        switch (direction) {
+//            case "C":// clockwise
+//
+//                initialHeading = getCurrentHeading();
+//                finalHeading = initialHeading + degree;
+//                if (finalHeading > 360) {
+//                    finalHeading = finalHeading - 360;
+//                }
+//
+//                while (opModeIsActive() && (int) (getCurrentHeading()) < (int) (finalHeading + tolerance)) {
+//                    driveFrontLeft.setPower(speed);
+//                    driveFrontRight.setPower(speed * -1);
+//                    driveBackLeft.setPower(speed);
+//                    driveBackRight.setPower(speed * -1);
+//                    telemetry.addData("1CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
+//                    telemetry.update();
+//                }
+//
+//                driveFrontLeft.setPower(0);
+//                driveFrontRight.setPower(0);
+//                driveBackLeft.setPower(0);
+//                driveBackRight.setPower(0);
+//
+//                break;
+//            case "CC":// counterclockwise
+//
+//                initialHeading = getCurrentHeading();
+//                finalHeading = initialHeading - degree;
+//                if (finalHeading < 0) {
+//                    finalHeading = finalHeading + 360;
+//                }
+//
+//                while (opModeIsActive() && (int) (getCurrentHeading()) > (int) (finalHeading - tolerance)) {
+//                    driveFrontLeft.setPower(speed * -1);
+//                    driveFrontRight.setPower(speed);
+//                    driveBackLeft.setPower(speed * -1);
+//                    driveBackRight.setPower(speed);
+//                    telemetry.addData("2CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
+//                    telemetry.update();
+//                }
+//
+//                driveFrontLeft.setPower(0);
+//                driveFrontRight.setPower(0);
+//                driveBackLeft.setPower(0);
+//                driveBackRight.setPower(0);
+//
+//                break;
+//        }
+//    }
 
-        double initialHeading;
-        double finalHeading;
+    public void turnEncoder(double speed, double turnDegrees, String direction) {
+        double distance = ROBOT_RADIUS_CM * (((turnDegrees) * (Math.PI)) / (180)); // Using arc length formula
+        int frontLeftTarget = 0;
+        int backLeftTarget = 0;
+        int frontRightTarget = 0;
+        int backRightTarget = 0;
+
+        //RESET ENCODERS
+        driveFrontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveBackLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         switch (direction) {
-            case "C":// clockwise
-
-                initialHeading = getCurrentHeading();
-                finalHeading = initialHeading + degree;
-                if (finalHeading > 360) {
-                    finalHeading = finalHeading - 360;
-                }
-
-                while (opModeIsActive() && (int) (getCurrentHeading()) < (int) (finalHeading + tolerance)) {
-                    driveFrontLeft.setPower(speed);
-                    driveFrontRight.setPower(speed * -1);
-                    driveBackLeft.setPower(speed);
-                    driveBackRight.setPower(speed * -1);
-                    telemetry.addData("1CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
-                    telemetry.update();
-                }
-
-                driveFrontLeft.setPower(0);
-                driveFrontRight.setPower(0);
-                driveBackLeft.setPower(0);
-                driveBackRight.setPower(0);
-
+            case "C":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * -1 * COUNTS_PER_CM_REV);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * -1 * COUNTS_PER_CM_REV);
                 break;
-            case "CC":// counterclockwise
-
-                initialHeading = getCurrentHeading();
-                finalHeading = initialHeading - degree;
-                if (finalHeading < 0) {
-                    finalHeading = finalHeading + 360;
-                }
-
-                while (opModeIsActive() && (int) (getCurrentHeading()) > (int) (finalHeading - tolerance)) {
-                    driveFrontLeft.setPower(speed * -1);
-                    driveFrontRight.setPower(speed);
-                    driveBackLeft.setPower(speed * -1);
-                    driveBackRight.setPower(speed);
-                    telemetry.addData("2CURRENT HEADING: ", "" + getCurrentHeading() + " " + finalHeading);
-                    telemetry.update();
-                }
-
-                driveFrontLeft.setPower(0);
-                driveFrontRight.setPower(0);
-                driveBackLeft.setPower(0);
-                driveBackRight.setPower(0);
-
+            case "CC":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * -1 * COUNTS_PER_CM_REV);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * -1 * COUNTS_PER_CM_REV);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV);
                 break;
         }
-    }
 
+        if (opModeIsActive()) {
+
+            // set target position to each motor
+            driveFrontLeft.setTargetPosition(frontLeftTarget);
+            driveFrontRight.setTargetPosition(frontRightTarget);
+            driveBackLeft.setTargetPosition(backLeftTarget);
+            driveBackRight.setTargetPosition(backRightTarget);
+
+            // Turn on run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            driveFrontLeft.setPower(speed);
+            driveFrontRight.setPower(speed);
+            driveBackLeft.setPower(speed);
+            driveBackRight.setPower(speed);
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
+
+                // Display it for the driver.
+                //telemetrySender("DEGREES", "" + getCurrentHeading(), "YES");
+            }
+
+            // Stop all motion;
+            driveFrontLeft.setPower(0);
+            driveFrontRight.setPower(0);
+            driveBackLeft.setPower(0);
+            driveBackRight.setPower(0);
+
+            //Turn off run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+         
+        }
+
+        // reset the timeout time and start motion.
+        runtime.reset();
+        //telemetrySender("DEGREES CURRENT: ", "" + getCurrentHeading(), "");
+        //telemetrySender("DEGREES FINAL: ", "" + (getCurrentHeading() + headingStart), "");
+    }
+    
     public double getCurrentHeading() {
         heading = 0.0;
         heading = (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle * -1);
