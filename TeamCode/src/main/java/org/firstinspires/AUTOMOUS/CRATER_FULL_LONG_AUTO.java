@@ -19,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-@Autonomous(name = "DEPOT_OUR_CRATER")
-public class Depot_2 extends LinearOpMode {
+@Autonomous(name = "CRATER_FULL_LONG_AUTO")
+public class CRATER_FULL_LONG_AUTO extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
     private DcMotor driveFrontRight;
@@ -110,7 +110,7 @@ public class Depot_2 extends LinearOpMode {
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
-        if (tfod != null) { // TODO maybe move this into intialization
+        if (tfod != null) {
             tfod.activate();
         }
 
@@ -187,44 +187,33 @@ public class Depot_2 extends LinearOpMode {
             strafeDriveEncoder(0.5, 4, "RIGHT");
             straightDriveEncoder(0.5, -5);
 
-            // TURN TO MINERAL
             switch(mineral){
                 case"L":
-                    turnEncoder(0.3,  45, "C");
-                    straightDriveEncoder(0.5,68);
-                    turnEncoder(0.3,  75, "C");
-                    straightDriveEncoder(0.5,68);
-                    // DROP MINERAL
-                    turnEncoder(0.5,105,"C");
-                    straightDriveEncoder(0.5,10);
-                    strafeDriveEncoder(0.5,30,"LEFT");
-                    strafeDriveEncoder(0.5,5,"RIGHT");
-                    straightDriveEncoder(0.5,165);
+                    strafeDriveEncoder(0.5,30,"RIGHT");
+                    straightDriveEncoder(0.5,35);
+                    strafeDriveEncoder(0.5,20,"RIGHT");
+                    strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(1,70);
                     break;
                 case"R":
-                    turnEncoder(0.3,  135, "C");
-                    straightDriveEncoder(0.5,72);
-                    turnEncoder(0.3,  75, "CC");
-                    straightDriveEncoder(0.5,68);
-                    //Drop Mineral
-                    turnEncoder(0.3,165,"C");
-                    strafeDriveEncoder(0.5,10,"LEFT");
-                    strafeDriveEncoder(0.5,5,"RIGHT");
-                    straightDriveEncoder(0.5,145);
+                    strafeDriveEncoder(0.5,30,"RIGHT");
+                    straightDriveEncoder(0.5,-35);
+                    strafeDriveEncoder(0.5,20,"RIGHT");
+                    strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(1,150);
                     break;
                 case"C":
-                    turnEncoder(0.3,  90, "C");//
-                    straightDriveEncoder(0.5,105);
-                    straightDriveEncoder(0.5,-15);
-                    turnEncoder(0.5,135,"C");
-                    // DROP MINERAL
-                    strafeDriveEncoder(0.5,33,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,140);
+                    strafeDriveEncoder(0.5,55,"RIGHT");
+                    strafeDriveEncoder(0.5,20,"LEFT");
+                    straightDriveEncoder(1,125);
                     break;
             }
+            turnEncoder(0.3,135,"C");
+            straightDriveEncoder(1,-100);
+            // DROP MARKER
+            straightDriveEncoder(1,150);
 
-        double run1 = getRuntime() + 0.75; // TODO need to change the time (0.5) so that it is correct
+        double run1 = getRuntime() + 0.75;
         while (run1 > getRuntime()) {// crunch DOWN
             crunchLeft.setPower(-1);
             crunchRight.setPower(1);

@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.ConceptTensorFlowObjectDetection;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -20,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-@Autonomous(name = "DEPOT_OPPOSITE_CRATER")
-public class Depot_1 extends LinearOpMode {
+@Autonomous(name = "DEPOT_LAND_AND_SAMPLE")
+public class LAND_AND_SAMPLE extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
     private DcMotor driveFrontRight;
@@ -111,7 +110,7 @@ public class Depot_1 extends LinearOpMode {
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
-        if (tfod != null) { // TODO maybe move this into intialization
+        if (tfod != null) {
             tfod.activate();
         }
 
@@ -193,38 +192,18 @@ public class Depot_1 extends LinearOpMode {
                 case"L":
                     turnEncoder(0.3,  45, "C");
                     straightDriveEncoder(0.5,68);
-                    turnEncoder(0.3,  75, "C");
-                    straightDriveEncoder(0.5,68);
-                    // DROP MINERAL
-                    turnEncoder(0.5,165,"CC");
-                    strafeDriveEncoder(0.5,10,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,134);
                     break;
                 case"R":
                     turnEncoder(0.3,  135, "C");
-                    straightDriveEncoder(0.5,72);
-                    turnEncoder(0.3,  75, "CC");
-                    straightDriveEncoder(0.5,65);
-                    //DROP MINERAL
-                    turnEncoder(0.3,105,"CC");
-                    strafeDriveEncoder(0.5,30,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,154);
+                    straightDriveEncoder(0.5,72);;
                     break;
                 case"C":
                     turnEncoder(0.3,  90, "C");//
-                    straightDriveEncoder(0.5,105);
-                    straightDriveEncoder(0.5,-15);
-                    turnEncoder(0.5,135,"CC");
-                    // DROP MINERAL
-                    strafeDriveEncoder(0.5,33,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,140);
+                    straightDriveEncoder(0.5,68);
                     break;
             }
 
-            double run1 = getRuntime() + 0.75; // TODO need to change the time (0.5) so that it is correct
+            double run1 = getRuntime() + 0.75;
             while (run1 > getRuntime()) {// crunch DOWN
                 crunchLeft.setPower(-1);
                 crunchRight.setPower(1);
