@@ -182,15 +182,14 @@ public class Danielsautoruns extends LinearOpMode {
             }
             if(mineral == " "){
                 mineral = "C";
-
             }
-//            // LAND
-//            landing(17, 1.0);
+            // LAND
+            landing(17, 1.0);
 
             //DELATCH
             strafeDriveEncoder(0.5, 4, "RIGHT");
             straightDriveEncoder(0.5, 5);
-            strafeDriveEncoder(0.5, 4, "RIGHT");
+            strafeDriveEncoder(0.5, 6, "RIGHT");
             straightDriveEncoder(0.5, -5);
 
             switch(mineral){
@@ -207,7 +206,7 @@ public class Danielsautoruns extends LinearOpMode {
                     turnEncoder(0.5,90,"C");
                     break;
                 case"C":
-                    turnEncoder(0.5,90,"C");
+                    turnEncoder(0.5,83,"C");
                     double run1 = getRuntime() + 0.75;
                     while (run1 > getRuntime()) {// crunch DOWN
                         crunchLeft.setPower(-1);
@@ -231,7 +230,33 @@ public class Danielsautoruns extends LinearOpMode {
                     outtakeSlideEncoder(1.0,26);
                     straightDriveEncoder(0.5,-10);
                     outtake.setPosition(0.9);
-                    sleep(2000);
+                    sleep(1000);
+                    outtake.setPosition(0.45);
+                    straightDriveEncoder(0.5,10);
+                    outtakeSlideEncoder(1.0,-26);
+                    straightDriveEncoder(0.5,30);
+                    double run5 = getRuntime() + 0.75;
+                    while (run5 > getRuntime()) {// crunch DOWN
+                        crunchLeft.setPower(-1);
+                        crunchRight.setPower(1);
+                        intakeMotor.setPower(-1);
+                    }
+                    crunchLeft.setPower(0);
+                    crunchRight.setPower(0);
+                    sleep(500);
+                    double run6 = getRuntime() + 0.8;
+                    while (run6 > getRuntime()) {// crunch UP
+                        crunchLeft.setPower(1);
+                        crunchRight.setPower(-1);
+                    }
+                    crunchLeft.setPower(0);
+                    crunchRight.setPower(0);
+                    intakeMotor.setPower(0);
+                    straightDriveEncoder(0.5,-30);
+                    outtakeSlideEncoder(1.0,26);
+                    straightDriveEncoder(0.5,-15);
+                    outtake.setPosition(0.9);
+                    sleep(1000);
                     break;
             }
         }
@@ -329,11 +354,14 @@ public class Danielsautoruns extends LinearOpMode {
 //    }
 
     public void turnEncoder(double speed, double turnDegrees, String direction) {
-        double distance = ROBOT_RADIUS_CM * (((turnDegrees) * (Math.PI)) / (180)); // Using arc length formula
+        double tuning = 1.1;
+        double distance = ROBOT_RADIUS_CM * tuning* (((turnDegrees) * (Math.PI)) / (180)); // Using arc length formula
         int frontLeftTarget = 0;
         int backLeftTarget = 0;
         int frontRightTarget = 0;
         int backRightTarget = 0;
+        double end = 0;
+        double t = 0;
 
         //RESET ENCODERS
         driveFrontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -383,12 +411,26 @@ public class Danielsautoruns extends LinearOpMode {
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
+
+            t= getRuntime();
+            end = (Math.abs(turnDegrees)/10.16)/(speed/0.05) + getRuntime();
+
             while (opModeIsActive() &&
+                    (getRuntime() <= end)&&
                     (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
 
                 // Display it for the driver.
-                //telemetrySender("DEGREES", "" + getCurrentHeading(), "YES");
+                telemetry.addData("RUN TIME CURRENT: ", ""+getRuntime());
+                telemetry.addData("RUN TIME END: ", ""+end);
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
             }
+            telemetry.clearAll();
+            telemetry.addData("FINISHED RUN: ", ""+(end-t));
+            telemetry.update();
 
             // Stop all motion;
             driveFrontLeft.setPower(0);
@@ -403,9 +445,6 @@ public class Danielsautoruns extends LinearOpMode {
             driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         }
-
-        // reset the timeout time and start motion.
-        runtime.reset();
         //telemetrySender("DEGREES CURRENT: ", "" + getCurrentHeading(), "");
         //telemetrySender("DEGREES FINAL: ", "" + (getCurrentHeading() + headingStart), "");
     }
@@ -447,6 +486,8 @@ public class Danielsautoruns extends LinearOpMode {
         int backLeftTarget;
         int frontRightTarget;
         int backRightTarget;
+        double end = 0;
+        double t = 0;
 
         if (opModeIsActive()) {
 
@@ -478,16 +519,27 @@ public class Danielsautoruns extends LinearOpMode {
             driveBackLeft.setPower(Math.abs(speed));
             driveBackRight.setPower(Math.abs(speed));
 
+            t= getRuntime();
+            end = (Math.abs(distanceCM)/10.16)/(speed/0.1) + getRuntime();
+
+
             while (opModeIsActive() &&
+                    (getRuntime() <= end)&&
                     (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
 
                 // Display it for the driver.
+                telemetry.addData("RUN TIME CURRENT: ", ""+getRuntime());
+                telemetry.addData("RUN TIME END: ", ""+end);
                 telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
                 telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
                 telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
                 telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
                 telemetry.update();
             }
+
+            telemetry.clearAll();
+            telemetry.addData("FINISHED RUN: ", ""+(end-t));
+            telemetry.update();
 
             // Stop all motion;
             driveFrontLeft.setPower(0);
