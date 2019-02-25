@@ -1,5 +1,7 @@
 package org.firstinspires.AUTOMOUS;
 
+import android.drm.DrmStore;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,7 +11,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.ConceptTensorFlowObjectDetection;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -42,7 +43,7 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
     double COUNTS_PER_MOTOR_REV = 2240;    // using REV HD 40:1
     double DRIVE_GEAR_REDUCTION = 0.75;    // 20 tooth to 15 tooth
     double WHEEL_DIAMETER_CM = 10.16;     // mecanum wheels
-    double TUNING_DRIVE = 1.1;
+    double TUNING_DRIVE = 1.0;
     double ROBOT_RADIUS_CM = 29;
     double COUNTS_PER_CM_REV = ((COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION * TUNING_DRIVE) / (WHEEL_DIAMETER_CM * Math.PI)) / 2;
 
@@ -128,106 +129,109 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
 
             String mineral = " ";
 
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        int goldMineralX = -1;
-                        int silverMineral1X = -1;
-                        int silverMineral2X = -1;
-                        double goldMineralConfidence = 0.0;
-                        double silverMineralConfidence = 0.0;
-                        double start = getRuntime();
-                        while (opModeIsActive() && getRuntime()-start < 5 && mineral == " ") {
-                            for (Recognition recognition : updatedRecognitions) {
+            if (tfod != null) {
+                // getUpdatedRecognitions() will return null if no new information is available since
+                // the last time that call was made.
+                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                if (updatedRecognitions != null) {
+                    telemetry.addData("# Object Detected", updatedRecognitions.size());
+                    int goldMineralX = -1;
+                    int silverMineral1X = -1;
+                    int silverMineral2X = -1;
+                    double goldMineralConfidence = 0.0;
+                    double silverMineralConfidence = 0.0;
+                    double start = getRuntime();
+                    while (opModeIsActive() && getRuntime()-start < 5 && mineral == " ") {
+                        for (Recognition recognition : updatedRecognitions) {
 
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    goldMineralConfidence = recognition.getConfidence();
-                                }
-                                if (recognition.getLabel().equals(LABEL_SILVER_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    silverMineralConfidence = recognition.getConfidence();
-                                }
-
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    goldMineralX = (int) recognition.getBottom();
-                                } else if (silverMineral1X == -1) {
-                                    silverMineral1X = (int) recognition.getBottom();
-                                } else {
-                                    silverMineral2X = (int) recognition.getBottom();
-                                }
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                goldMineralConfidence = recognition.getConfidence();
+                            }
+                            if (recognition.getLabel().equals(LABEL_SILVER_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                silverMineralConfidence = recognition.getConfidence();
                             }
 
-                            if (goldMineralX > 700 && silverMineral1X < 700 && goldMineralConfidence > silverMineralConfidence) {
-                                mineral = "C";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
-                            } else if (goldMineralX < 700 && silverMineral1X > 700 && goldMineralConfidence > silverMineralConfidence) {
-                                mineral = "L";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
-                            } else if (silverMineral1X != -1 && silverMineral2X != -1) {
-                                mineral = "R";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                goldMineralX = (int) recognition.getBottom();
+                            } else if (silverMineral1X == -1) {
+                                silverMineral1X = (int) recognition.getBottom();
+                            } else {
+                                silverMineral2X = (int) recognition.getBottom();
                             }
-
                         }
-                        telemetry.update();
+
+                        if (goldMineralX > 700 && silverMineral1X < 700 && goldMineralConfidence > silverMineralConfidence) {
+                            mineral = "C";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        } else if (goldMineralX < 700 && silverMineral1X > 700 && goldMineralConfidence > silverMineralConfidence) {
+                            mineral = "L";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        } else if (silverMineral1X != -1 && silverMineral2X != -1) {
+                            mineral = "R";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        }
+
                     }
+                    telemetry.update();
                 }
+            }
 
             if (tfod != null) {
                 tfod.shutdown();
             }
+
             if(mineral == " "){
                 mineral = "C";
             }
+
             // LAND
             landing(17, 1.0);
 
             //DELATCH
             strafeDriveEncoder(0.5, 4, "RIGHT");
-            straightDriveEncoder(0.5, 5);
+            straightDriveEncoder(0.5, 7);
             strafeDriveEncoder(0.5, 4, "RIGHT");
-            straightDriveEncoder(0.5, -5);
-
+            straightDriveEncoder(0.5, -7);
+            strafeDriveEncoder(0.5,5, "RIGHT");
             // TURN TO MINERAL
             switch(mineral){
                 case"L":
-                    turnEncoder(0.3,  45, "C");
-                    straightDriveEncoder(0.5,68);
-                    turnEncoder(0.3,  75, "C");
-                    straightDriveEncoder(0.5,68);
-                    turnEncoder(0.5,165,"CC");
+                    turnEncoder(0.5,  45, "C");
+                    straightDriveEncoder(0.75,68);
+                    turnEncoder(0.5,  75, "C");
+                    straightDriveEncoder(0.75,68);
+                    turnEncoder(0.75,165,"CC");
                     marker.setPosition(0.1);
-                    strafeDriveEncoder(0.5,10,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,134);
+                    strafeDriveEncoder(0.75,10,"RIGHT");
+                    strafeDriveEncoder(0.75,5,"LEFT");
+                    straightDriveEncoder(0.75,134);
                     break;
                 case"R":
-                    turnEncoder(0.3,  135, "C");
-                    straightDriveEncoder(0.5,72);
-                    turnEncoder(0.3,  75, "CC");
-                    straightDriveEncoder(0.5,65);
-                    turnEncoder(0.3,105,"CC");
+                    turnEncoder(0.5,  135, "C");
+                    straightDriveEncoder(0.75,72);
+                    turnEncoder(0.5,  75, "CC");
+                    straightDriveEncoder(0.75,65);
+                    turnEncoder(0.5,105,"CC");
+                    strafeDriveEncoder(0.75,45,"RIGHT");
                     marker.setPosition(0.1);
-                    strafeDriveEncoder(0.5,30,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,154);
+                    strafeDriveEncoder(0.75,5,"LEFT");
+                    straightDriveEncoder(0.75,172);
                     break;
                 case"C":
-                    turnEncoder(0.3,  90, "C");//
-                    straightDriveEncoder(0.5,105);
-                    straightDriveEncoder(0.5,-15);
-                    turnEncoder(0.5,135,"CC");
+                    turnEncoder(0.5,  90, "C");//
+                    straightDriveEncoder(0.75,105);
+                    straightDriveEncoder(0.75,-15);
+                    turnEncoder(0.75,135,"CC");
                     marker.setPosition(0.1);
-                    strafeDriveEncoder(0.5,33,"RIGHT");
-                    strafeDriveEncoder(0.5,5,"LEFT");
-                    straightDriveEncoder(0.5,140);
+                    strafeDriveEncoder(0.75,45,"RIGHT");
+                    strafeDriveEncoder(0.75,5,"LEFT");
+                    straightDriveEncoder(0.75,140);
                     break;
             }
+
 
             double run1 = getRuntime() + 0.75;
             while (run1 > getRuntime()) {// crunch DOWN
@@ -238,6 +242,8 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
             crunchRight.setPower(0);
 
         }
+        // LAND
+        //landing(-17, 1.0);
 
     }
 
@@ -330,12 +336,170 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
 //        }
 //    }
 
-    public void turnEncoder(double speed, double turnDegrees, String direction) {
-        double distance = ROBOT_RADIUS_CM * (((turnDegrees) * (Math.PI)) / (180)); // Using arc length formula
+    public void straightDriveEncoder(double speed, double distanceCM) {
+        int frontLeftTarget;
+        int backLeftTarget;
+        int frontRightTarget;
+        int backRightTarget;
+        double end = 0;
+        double t = 0;
+
+        if (opModeIsActive()) {
+
+            driveFrontLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveFrontRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveBackLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            driveBackRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+            // Determine new target position, and pass to motor controller
+            frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+            backRightTarget = driveBackRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
+
+            // set target position to each motor
+            driveFrontLeft.setTargetPosition(frontLeftTarget);
+            driveFrontRight.setTargetPosition(frontRightTarget);
+            driveBackLeft.setTargetPosition(backLeftTarget);
+            driveBackRight.setTargetPosition(backRightTarget);
+
+            // Turn on run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            driveFrontLeft.setPower(Math.abs(speed));
+            driveFrontRight.setPower(Math.abs(speed));
+            driveBackLeft.setPower(Math.abs(speed));
+            driveBackRight.setPower(Math.abs(speed));
+
+            t= getRuntime();
+            end = (Math.abs(distanceCM)/10.16)/(speed/0.1) + getRuntime();
+
+
+            while (opModeIsActive() &&
+                    (getRuntime() <= end)&&
+                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("RUN TIME CURRENT: ", ""+getRuntime());
+                telemetry.addData("RUN TIME END: ", ""+end);
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
+            }
+
+            telemetry.clearAll();
+            telemetry.addData("FINISHED RUN: ", ""+(end-t));
+            telemetry.update();
+
+            // Stop all motion;
+            driveFrontLeft.setPower(0);
+            driveFrontRight.setPower(0);
+            driveBackLeft.setPower(0);
+            driveBackRight.setPower(0);
+
+            //Turn off run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+    }
+
+    public void strafeDriveEncoder(double speed, double distance, String direction) {
         int frontLeftTarget = 0;
         int backLeftTarget = 0;
         int frontRightTarget = 0;
         int backRightTarget = 0;
+        double end = 0;
+        double t = 0;
+
+        switch (direction) {
+            case "LEFT":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.6);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.6);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.6);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.6);
+                break;
+            case "RIGHT":
+                // Determine new target position, and pass to motor controller
+                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.6);
+                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.6);
+                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.6);
+                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.6);
+                break;
+        }
+        if (opModeIsActive()) {
+
+            // set target position to each motor
+            driveFrontLeft.setTargetPosition(frontLeftTarget);
+            driveFrontRight.setTargetPosition(frontRightTarget);
+            driveBackLeft.setTargetPosition(backLeftTarget);
+            driveBackRight.setTargetPosition(backRightTarget);
+
+            // Turn on run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            driveFrontLeft.setPower(Math.abs(speed));
+            driveFrontRight.setPower(Math.abs(speed));
+            driveBackLeft.setPower(Math.abs(speed));
+            driveBackRight.setPower(Math.abs(speed));
+
+            t= getRuntime();
+            end = (Math.abs(distance)/10.16)/(speed/0.7) + getRuntime();
+
+            while (opModeIsActive() &&
+                    // (getRuntime() <= end)&&
+                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("RUN TIME CURRENT: ", ""+getRuntime());
+                telemetry.addData("RUN TIME END: ", ""+end);
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
+            }
+
+            telemetry.clearAll();
+            telemetry.addData("FINISHED RUN: ", ""+(end-t));
+            telemetry.update();
+
+            // Stop all motion;
+            driveFrontLeft.setPower(0);
+            driveFrontRight.setPower(0);
+            driveBackLeft.setPower(0);
+            driveBackRight.setPower(0);
+
+            //Turn off run to position
+            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+
+    }
+
+    public void turnEncoder(double speed, double turnDegrees, String direction) {
+        double tuning = 1.1;
+        double distance = ROBOT_RADIUS_CM * tuning* (((turnDegrees) * (Math.PI)) / (180)); // Using arc length formula
+        int frontLeftTarget = 0;
+        int backLeftTarget = 0;
+        int frontRightTarget = 0;
+        int backRightTarget = 0;
+        double end = 0;
+        double t = 0;
 
         //RESET ENCODERS
         driveFrontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -385,12 +549,26 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
+
+            t= getRuntime();
+            end = (Math.abs(turnDegrees)/10.16)/(speed/0.05) + getRuntime();
+
             while (opModeIsActive() &&
+                    (getRuntime() <= end)&&
                     (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
 
                 // Display it for the driver.
-                //telemetrySender("DEGREES", "" + getCurrentHeading(), "YES");
+                telemetry.addData("RUN TIME CURRENT: ", ""+getRuntime());
+                telemetry.addData("RUN TIME END: ", ""+end);
+                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
+                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
+                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
+                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
+                telemetry.update();
             }
+            telemetry.clearAll();
+            telemetry.addData("FINISHED RUN: ", ""+(end-t));
+            telemetry.update();
 
             // Stop all motion;
             driveFrontLeft.setPower(0);
@@ -403,15 +581,12 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
             driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-         
-        }
 
-        // reset the timeout time and start motion.
-        runtime.reset();
+        }
         //telemetrySender("DEGREES CURRENT: ", "" + getCurrentHeading(), "");
         //telemetrySender("DEGREES FINAL: ", "" + (getCurrentHeading() + headingStart), "");
     }
-    
+
     public double getCurrentHeading() {
         heading = 0.0;
         heading = (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle * -1);
@@ -442,136 +617,6 @@ public class DEPOT_OPPOSITE_CRATER extends LinearOpMode {
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
-    }
-
-    public void straightDriveEncoder(double speed, double distanceCM) {
-        int frontLeftTarget;
-        int backLeftTarget;
-        int frontRightTarget;
-        int backRightTarget;
-
-        if (opModeIsActive()) {
-
-            driveFrontLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
-            driveFrontRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
-            driveBackLeft.setMode(DcMotor.RunMode.RESET_ENCODERS);
-            driveBackRight.setMode(DcMotor.RunMode.RESET_ENCODERS);
-
-            // Determine new target position, and pass to motor controller
-            frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
-            frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
-            backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
-            backRightTarget = driveBackRight.getCurrentPosition() + (int) (distanceCM * COUNTS_PER_CM_REV);
-
-            // set target position to each motor
-            driveFrontLeft.setTargetPosition(frontLeftTarget);
-            driveFrontRight.setTargetPosition(frontRightTarget);
-            driveBackLeft.setTargetPosition(backLeftTarget);
-            driveBackRight.setTargetPosition(backRightTarget);
-
-            // Turn on run to position
-            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            driveFrontLeft.setPower(Math.abs(speed));
-            driveFrontRight.setPower(Math.abs(speed));
-            driveBackLeft.setPower(Math.abs(speed));
-            driveBackRight.setPower(Math.abs(speed));
-
-            while (opModeIsActive() &&
-                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
-
-                // Display it for the driver.
-                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
-                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
-                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
-                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
-                telemetry.update();
-            }
-
-            // Stop all motion;
-            driveFrontLeft.setPower(0);
-            driveFrontRight.setPower(0);
-            driveBackLeft.setPower(0);
-            driveBackRight.setPower(0);
-
-            //Turn off run to position
-            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        }
-    }
-
-    public void strafeDriveEncoder(double speed, double distance, String direction) {
-        int frontLeftTarget = 0;
-        int backLeftTarget = 0;
-        int frontRightTarget = 0;
-        int backRightTarget = 0;
-
-        switch (direction) {
-            case "LEFT":
-                // Determine new target position, and pass to motor controller
-                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
-                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
-                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
-                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
-                break;
-            case "RIGHT":
-                // Determine new target position, and pass to motor controller
-                frontLeftTarget = driveFrontLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
-                frontRightTarget = driveFrontRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
-                backLeftTarget = driveBackLeft.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * -1.45);
-                backRightTarget = driveBackRight.getCurrentPosition() + (int) (distance * COUNTS_PER_CM_REV * 1.45);
-                break;
-        }
-        if (opModeIsActive()) {
-
-            // set target position to each motor
-            driveFrontLeft.setTargetPosition(frontLeftTarget);
-            driveFrontRight.setTargetPosition(frontRightTarget);
-            driveBackLeft.setTargetPosition(backLeftTarget);
-            driveBackRight.setTargetPosition(backRightTarget);
-
-            // Turn on run to position
-            driveFrontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveFrontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveBackLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            driveBackRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            driveFrontLeft.setPower(Math.abs(speed));
-            driveFrontRight.setPower(Math.abs(speed));
-            driveBackLeft.setPower(Math.abs(speed));
-            driveBackRight.setPower(Math.abs(speed));
-
-            while (opModeIsActive() &&
-                    (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
-
-                // Display it for the driver.
-                telemetry.addData("FRONT LEFT MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", frontLeftTarget, driveFrontLeft.getCurrentPosition());
-                telemetry.addData("FRONT RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", frontRightTarget, driveFrontRight.getCurrentPosition());
-                telemetry.addData("BACK LEFT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backLeftTarget, driveBackLeft.getCurrentPosition());
-                telemetry.addData("BACK RIGHT MOTOR", "DRIVING TO: %7d CURRENTLY AT: %7d", backRightTarget, driveBackRight.getCurrentPosition());
-                telemetry.update();
-            }
-
-            // Stop all motion;
-            driveFrontLeft.setPower(0);
-            driveFrontRight.setPower(0);
-            driveBackLeft.setPower(0);
-            driveBackRight.setPower(0);
-
-            //Turn off run to position
-            driveFrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveFrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        }
-
     }
 
     // NOT GETTING ANY ENCODER READINGS

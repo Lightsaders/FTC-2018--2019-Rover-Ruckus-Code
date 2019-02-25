@@ -19,25 +19,21 @@ import java.util.Locale;
 
 
 @TeleOp(name = "Prototyping", group = "Teleop")
-@Disabled
 
-
-public class Prototyping extends LinearOpMode{
+public class Prototyping extends LinearOpMode {
     private DcMotor motor;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        motor =  hardwareMap.dcMotor.get("motor");
+        //Initialize Drive Motors
+        motor = hardwareMap.dcMotor.get("motor");
+
 
         waitForStart();
 
         while (opModeIsActive()) {
-            motor.setPower(gamepad1.right_stick_y);
-            telemetry.addData("MOTOR encoder",  motor.getCurrentPosition());
-            telemetry.update();
-
-
+                motor.setPower(gamepad1.left_stick_y);
         }
         idle();
     }

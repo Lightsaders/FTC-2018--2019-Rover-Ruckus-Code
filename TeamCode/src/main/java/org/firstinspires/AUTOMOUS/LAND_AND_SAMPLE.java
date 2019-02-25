@@ -188,10 +188,10 @@ public class LAND_AND_SAMPLE extends LinearOpMode {
 
             //DELATCH
             strafeDriveEncoder(0.5, 4, "RIGHT");
-            straightDriveEncoder(0.5, 5);
+            straightDriveEncoder(0.5, 7);
             strafeDriveEncoder(0.5, 4, "RIGHT");
-            straightDriveEncoder(0.5, -5);
-
+            straightDriveEncoder(0.5, -7);
+            strafeDriveEncoder(0.5,5, "RIGHT");
             // TURN TO MINERAL
             switch(mineral){
                 case"L":

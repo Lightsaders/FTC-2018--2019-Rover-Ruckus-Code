@@ -191,7 +191,8 @@ public class CRATER_NO_MARKER extends LinearOpMode {
             straightDriveEncoder(0.5, 5);
             strafeDriveEncoder(0.5, 4, "RIGHT");
             straightDriveEncoder(0.5, -5);
-
+            strafeDriveEncoder(0.5,5, "RIGHT");
+            // TURN TO MINERAL
             switch(mineral){
                 case"L":
                     strafeDriveEncoder(0.5,30,"RIGHT");
