@@ -40,20 +40,20 @@ public class TEST_TELEOP extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            driveFrontLeft.setPower(gamepad1.left_stick_y);
-            driveBackLeft.setPower(gamepad1.left_stick_y);
-            driveFrontRight.setPower(gamepad1.left_stick_y);
-            driveBackRight.setPower(gamepad1.left_stick_y);
+            driveFrontLeft.setPower(gamepad1.left_stick_y*-1);
+            driveBackLeft.setPower(gamepad1.left_stick_y*-1);
+            driveFrontRight.setPower(gamepad1.left_stick_y*-1);
+            driveBackRight.setPower(gamepad1.left_stick_y*-1);
 
-            driveFrontLeft.setPower(gamepad1.left_stick_x*-1);
-            driveBackLeft.setPower(gamepad1.left_stick_x);
-            driveFrontRight.setPower(gamepad1.left_stick_x);
-            driveBackRight.setPower(gamepad1.left_stick_x*-1);
+            driveFrontLeft.setPower(gamepad1.left_stick_x*1);
+            driveBackLeft.setPower(gamepad1.left_stick_x*-1);
+            driveFrontRight.setPower(gamepad1.left_stick_x*-1);
+            driveBackRight.setPower(gamepad1.left_stick_x*1);
 
-            driveFrontLeft.setPower(gamepad1.right_stick_x*-1);
-            driveBackLeft.setPower(gamepad1.right_stick_x*-1);
-            driveFrontRight.setPower(gamepad1.right_stick_x);
-            driveBackRight.setPower(gamepad1.right_stick_x);
+            driveFrontLeft.setPower(gamepad1.right_stick_x*1);
+            driveBackLeft.setPower(gamepad1.right_stick_x*1);
+            driveFrontRight.setPower(gamepad1.right_stick_x*-1);
+            driveBackRight.setPower(gamepad1.right_stick_x*-1);
 
         }
         idle();

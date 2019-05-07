@@ -2,6 +2,7 @@ package org.firstinspires.AUTOMOUS;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import java.util.List;
 
 @Autonomous(name = "INTAKETEST")
+@Disabled
 public class Danielsautoruns extends LinearOpMode {
 
     private DcMotor driveFrontLeft;
@@ -234,7 +236,7 @@ public class Danielsautoruns extends LinearOpMode {
                     outtake.setPosition(0.45);
                     straightDriveEncoder(0.5,10);
                     outtakeSlideEncoder(1.0,-26);
-                    straightDriveEncoder(0.5,30);
+                    straightDriveEncoder(0.5,40);
                     double run5 = getRuntime() + 0.75;
                     while (run5 > getRuntime()) {// crunch DOWN
                         crunchLeft.setPower(-1);
@@ -249,14 +251,25 @@ public class Danielsautoruns extends LinearOpMode {
                         crunchLeft.setPower(1);
                         crunchRight.setPower(-1);
                     }
+                    sleep(500);
                     crunchLeft.setPower(0);
                     crunchRight.setPower(0);
                     intakeMotor.setPower(0);
-                    straightDriveEncoder(0.5,-30);
+                    straightDriveEncoder(0.5,-40);
                     outtakeSlideEncoder(1.0,26);
                     straightDriveEncoder(0.5,-15);
                     outtake.setPosition(0.9);
                     sleep(1000);
+                    outtake.setPosition(0.45);
+                    straightDriveEncoder(0.5,45);
+                    double run7 = getRuntime() + 0.75;
+                    while (run7 > getRuntime()) {// crunch DOWN
+                        crunchLeft.setPower(-1);
+                        crunchRight.setPower(1);
+                        intakeMotor.setPower(-1);
+                    }
+                    crunchLeft.setPower(0);
+                    crunchRight.setPower(0);
                     break;
             }
         }

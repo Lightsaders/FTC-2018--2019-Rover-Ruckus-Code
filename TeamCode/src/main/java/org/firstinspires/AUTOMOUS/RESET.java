@@ -53,15 +53,15 @@ public class RESET extends LinearOpMode {
             telemetry.update();
         }
 
-        while (opModeIsActive()) {
+        if (opModeIsActive()) {
 
-            if(gamepad1.x){
+            //if(gamepad1.x){
                 landing(-17, 1.0);
-            }
-            if(gamepad1.y){
-                outtake.setPosition(0.45);
-                outtakeSlideEncoder(1.0,-26);
-            }
+           // }
+           // if(gamepad1.y){
+            //    outtake.setPosition(0.45);
+           //     outtakeSlideEncoder(1.0,-26);
+          //  }
 
 
 
