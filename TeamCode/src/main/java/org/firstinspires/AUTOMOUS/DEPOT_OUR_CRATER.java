@@ -70,6 +70,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
     private String position;
+    private String mineral = " ";
 
 
     @Override
@@ -127,71 +128,81 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            String mineral = " ";
 
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        int goldMineralX = -1;
-                        int silverMineral1X = -1;
-                        int silverMineral2X = -1;
-                        double goldMineralConfidence = 0.0;
-                        double silverMineralConfidence = 0.0;
-                        double start = getRuntime();
-                        while (opModeIsActive() && getRuntime()-start < 5 && mineral == " ") {
-                            for (Recognition recognition : updatedRecognitions) {
 
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    goldMineralConfidence = recognition.getConfidence();
-                                }
-                                if (recognition.getLabel().equals(LABEL_SILVER_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    silverMineralConfidence = recognition.getConfidence();
-                                }
+            if (tfod != null) {
+                // getUpdatedRecognitions() will return null if no new information is available since
+                // the last time that call was made.
+                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                if (updatedRecognitions != null) {
+                    telemetry.addData("# Object Detected", updatedRecognitions.size());
+                    int goldMineralX = -1;
+                    int silverMineral1X = -1;
+                    int silverMineral2X = -1;
+                    double goldMineralConfidence = 0.0;
+                    double silverMineralConfidence = 0.0;
+                    double start = getRuntime();
+                    while (opModeIsActive() && getRuntime()-start < 5 && mineral == " ") {
+                        for (Recognition recognition : updatedRecognitions) {
 
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
-                                    goldMineralX = (int) recognition.getBottom();
-                                } else if (silverMineral1X == -1) {
-                                    silverMineral1X = (int) recognition.getBottom();
-                                } else {
-                                    silverMineral2X = (int) recognition.getBottom();
-                                }
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                goldMineralConfidence = recognition.getConfidence();
+                            }
+                            if (recognition.getLabel().equals(LABEL_SILVER_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                silverMineralConfidence = recognition.getConfidence();
                             }
 
-                            if (goldMineralX > 700 && silverMineral1X < 700 && goldMineralConfidence > silverMineralConfidence) {
-                                mineral = "C";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
-                            } else if (goldMineralX < 700 && silverMineral1X > 700 && goldMineralConfidence > silverMineralConfidence) {
-                                mineral = "L";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
-                            } else if (silverMineral1X != -1 && silverMineral2X != -1) {
-                                mineral = "R";
-                                telemetry.addData("Mineral POSITION: ", mineral);
-                                telemetry.update();
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL) && Math.abs(recognition.getLeft() - recognition.getRight()) > 100) {
+                                goldMineralX = (int) recognition.getBottom();
+                            } else if (silverMineral1X == -1) {
+                                silverMineral1X = (int) recognition.getBottom();
+                            } else {
+                                silverMineral2X = (int) recognition.getBottom();
                             }
-
                         }
+
+                        if (goldMineralX > 700 && silverMineral1X < 700) {
+                            mineral = "C";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        } else if (goldMineralX < 700 && silverMineral1X > 700 && goldMineralX > 0) {
+                            mineral = "L";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        } else if (silverMineral1X != -1 && silverMineral2X != -1 && goldMineralConfidence < 50) {
+                            mineral = "R";
+                            telemetry.addData("Mineral POSITION: ", mineral);
+                            telemetry.update();
+                        }
+
+                        // test
+                        telemetry.addData("GOLD MINERAL POSITION", goldMineralX);
+                        telemetry.addData("Silver MINERAL POSITION", silverMineral1X);
+                        telemetry.addData("Silver MINERAL POSITION", silverMineral2X);
+                        telemetry.addData("Gold Mineral Confidence", goldMineralConfidence);
+                        telemetry.addData("Silver Mineral Confidence", silverMineralConfidence);
                         telemetry.update();
+                        //sleep(30000);
+
                     }
+                    telemetry.update();
                 }
+            }
 
             if (tfod != null) {
                 tfod.shutdown();
             }
 
             if(mineral == " "){
-                    mineral = "C";
+                mineral = "R";
             }
+
+
 
             // LAND
             landing(17, 1.0);
 
-            //DELATCH
-            strafeDriveEncoder(0.5, 4, "RIGHT");
+            strafeDriveEncoder(0.5, 6, "RIGHT");
             straightDriveEncoder(0.5, 7);
             strafeDriveEncoder(0.5, 4, "RIGHT");
             straightDriveEncoder(0.5, -7);
@@ -233,7 +244,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
                     break;
             }
 
-        double run1 = getRuntime() + 0.75;
+        double run1 = getRuntime() + 1.0;
         while (run1 > getRuntime()) {// crunch DOWN
             crunchLeft.setPower(-1);
             crunchRight.setPower(1);
@@ -247,7 +258,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
 
     }
 
-       public void landing(double distanceCM, double speed) {
+    public void landing(double distanceCM, double speed) {
         int target;
 
         if (opModeIsActive()) {
@@ -268,7 +279,8 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
             // loop while position is not reached
             while (opModeIsActive() && (liftMotor.isBusy())) {
                 // Display it for the driver.
-                telemetry.addData("VERTICAL LINEAR SLIDE MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", target, liftMotor.getCurrentPosition());
+                telemetry.addData("Mineral Position", mineral);
+                //telemetry.addData("VERTICAL LINEAR SLIDE MOTOR", " DRIVING TO: %7d CURRENTLY AT: %7d", target, liftMotor.getCurrentPosition());
                 telemetry.update();
             }
 
@@ -458,7 +470,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
             end = (Math.abs(distance)/10.16)/(speed/0.7) + getRuntime();
 
             while (opModeIsActive() &&
-                   // (getRuntime() <= end)&&
+                    (getRuntime() <= end)&&
                     (driveFrontLeft.isBusy() || driveFrontRight.isBusy() || driveBackLeft.isBusy() || driveBackRight.isBusy())) {
 
                 // Display it for the driver.
@@ -586,7 +598,7 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
         //telemetrySender("DEGREES CURRENT: ", "" + getCurrentHeading(), "");
         //telemetrySender("DEGREES FINAL: ", "" + (getCurrentHeading() + headingStart), "");
     }
-    
+
     public double getCurrentHeading() {
         heading = 0.0;
         heading = (imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle * -1);
@@ -659,5 +671,6 @@ public class DEPOT_OUR_CRATER extends LinearOpMode {
 
         }
     }
+
 
 }

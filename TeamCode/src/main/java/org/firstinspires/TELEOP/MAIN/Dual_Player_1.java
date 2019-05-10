@@ -97,7 +97,7 @@ public class Dual_Player_1 extends LinearOpMode {
                 outtake.setPosition(0.94);
             }
             if(gamepad1.b){// outtake dump
-                outtake.setPosition(0.45);
+                outtake.setPosition(0.42);
             }
             if(gamepad1.x){// outtake intermediary 1
                 outtake.setPosition(0.5);
