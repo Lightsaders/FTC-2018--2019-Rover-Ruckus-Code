@@ -62,7 +62,7 @@ public class Dual_Player_1 extends LinearOpMode {
             telemetry.addData("status", "waiting for start command...");
             telemetry.update();
         }
-        outtake.setPosition(0.45);
+        outtake.setPosition(0.48);
         marker.setPosition(0.62);
 
         while (opModeIsActive()) {
@@ -97,10 +97,10 @@ public class Dual_Player_1 extends LinearOpMode {
                 outtake.setPosition(0.94);
             }
             if(gamepad1.b){// outtake dump
-                outtake.setPosition(0.42);
+                outtake.setPosition(0.48);
             }
             if(gamepad1.x){// outtake intermediary 1
-                outtake.setPosition(0.5);
+                outtake.setPosition(0.6);
             }
             if(gamepad1.y){// outtake intermediary 2
                 outtake.setPosition(0.75);
